@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HexGaming 红人评估工具（含背调+一键出结果）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+        body {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+            background: #f5f7fa;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        h1 {
+            text-align: center;
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .brand-box {
+            background: #eff6ff;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: #1e293b;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #334155;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #1d4ed8;
+        }
+        #loading {
+            margin-left: 10px;
+            color: #666;
+            display: none;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: none;
+        }
+        .result-box h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .result-content {
+            line-height: 1.8;
+            color: #334155;
+            white-space: pre-wrap;
+        }
+        .error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>HexGaming 红人评估工具（含背调+一键出结果）</h1>
+
+    <div class="brand-box">
+        <strong>品牌信息</strong><br>
+        品类：游戏手柄/电竞外设<br>
+        受众：18-45岁 PS5/Xbox/PC 主机玩家<br>
+        价格：$139–$269｜佣金：5%–10% 阶梯<br>
+        需求：测评、对比、开箱、实机演示<br>
+        地区：北美 / 欧洲 / 英国 / 日本
+    </div>
+
+    <!-- 原有字段 -->
+    <div class="form-group">
+        <label>1. 账号ID</label>
+        <input type="text" id="accountId" placeholder="例如：@ProGamer123">
+    </div>
+    <div class="form-group">
+        <label>2. 粉丝数</label>
+        <input type="text" id="fans" placeholder="例如：1111 Followers">
+    </div>
+    <div class="form-group">
+        <label>3. 简介</label>
+        <textarea id="bio" placeholder="红人账号简介"></textarea>
+    </div>
+    <div class="form-group">
+        <label>4. 近5条视频（标题+播放量）</label>
+        <textarea id="videos" placeholder="《Best setup》- 105 views
+《Comp with cat》- 3196 views"></textarea>
+    </div>
+    <div class="form-group">
+        <label>5. 内容风格</label>
+        <input type="text" id="style" placeholder="硬核测评/开箱/实机等">
+    </div>
+    <div class="form-group">
+        <label>6. 地区/语言（请选择）</label>
+        <select id="region">
+            <optgroup label="北美"><option value="北美/英语">北美/英语</option><option value="北美/西班牙语">北美/西班牙语</option></optgroup>
+            <optgroup label="欧洲"><option value="欧洲/英语">欧洲/英语</option><option value="欧洲/西班牙语">欧洲/西班牙语</option><option value="欧洲/德语">欧洲/德语</option><option value="欧洲/法语">欧洲/法语</option><option value="欧洲/其他">欧洲/其他</option></optgroup>
+            <optgroup label="英国"><option value="英国/英语">英国/英语</option></optgroup>
+            <optgroup label="日本"><option value="日本/日语">日本/日语</option></optgroup>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>7. 竞品提及</label>
+        <input type="text" id="competitor" placeholder="Scuf、Xbox Elite等">
+    </div>
+
+    <!-- 新增背调字段 -->
+    <div class="form-group">
+        <label>8. 红人背调/历史内容扫雷</label>
+        <textarea id="historyContent" placeholder="1. 近3个月是否提品牌负面
+2. 有无舆情事件（吐槽/违规）
+3. 风险关键词（劣质/退款/差评）
+4. 合作违约记录"></textarea>
+    </div>
+
+    <!-- 按钮 -->
+    <button class="btn" id="analyzeBtn">一键生成AI评估报告</button>
+    <span id="loading">AI分析中...（约10-30秒）</span>
+
+    <!-- 结果展示区 -->
+    <div class="result-box" id="resultBox">
+        <h3>AI评估报告（含背调扫雷）</h3>
+        <div class="result-content" id="resultContent"></div>
+    </div>
+</div>
+
+<script>
+// 替换成你的DeepSeek API密钥
+const API_KEY = "sk-f4bb5e2366f14e32aab3c5e2cfc800c7";
+const API_URL = "https://api.deepseek.com/v1/chat/completions";
+
+// 生成精简指令（降低Token消耗）
+function getPrompt() {
+    const accountId = document.getElementById('accountId').value || '无';
+    const fans = document.getElementById('fans').value || '无';
+    const bio = document.getElementById('bio').value || '无';
+    const videos = document.getElementById('videos').value || '无';
+    const style = document.getElementById('style').value || '无';
+    const region = document.getElementById('region').value;
+    const competitor = document.getElementById('competitor').value || '无';
+    const historyContent = document.getElementById('historyContent').value || '无';
+
+    // 精简指令，减少Token消耗
+    return `你是欧美/英/日游戏红人营销+风控专家，评估HexGaming合作红人：
+【品牌】游戏手柄，$139-$269，18-45岁主机玩家，需测评/开箱
+【红人】ID:${accountId}，粉丝:${fans}，地区:${region}，风格:${style}，背调:${historyContent}，竞品:${competitor}，视频:${videos}，简介:${bio}
+【输出】
+1. 背调扫雷：负面提及/舆情风险/违约风险（低/中/高）
+2. 粉丝画像（地区+年龄+精准度1-10）
+3. 内容匹配度
+4. 互动质量（刷量风险）
+5. 综合分（0-100）
+6. 最佳合作形式（3种）
+7. 合理报价（USD）
+8. 合作风险
+9. 最终建议`;
+}
+
+// 调用API一键分析
+async function analyze() {
+    const loading = document.getElementById('loading');
+    const resultBox = document.getElementById('resultBox');
+    const resultContent = document.getElementById('resultContent');
+
+    // 显示加载
+    loading.style.display = 'inline';
+    resultBox.style.display = 'none';
+    resultContent.innerHTML = '';
+
+    try {
+        // 调用DeepSeek API
+        const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat", // 低成本模型
+                messages: [{ role: "user", content: getPrompt() }],
+                temperature: 0.3, // 结果精准
+                max_tokens: 1500, // 限制输出长度，降成本
+                stream: false
+            })
+        });
+
+        const data = await res.json();
+
+        // 展示结果
+        if (data.choices?.length) {
+            resultContent.innerHTML = data.choices[0].message.content;
+        } else if (data.error) {
+            resultContent.innerHTML = `<span class="error">❌ 错误：${data.error.message}</span>`;
+        }
+    } catch (err) {
+        resultContent.innerHTML = `<span class="error">❌ 网络错误：${err.message}</span>`;
+    } finally {
+        loading.style.display = 'none';
+        resultBox.style.display = 'block';
+    }
+}
+
+// 绑定按钮事件
+document.getElementById('analyzeBtn').addEventListener('click', analyze);
+</script>
+</body>
+</html>
